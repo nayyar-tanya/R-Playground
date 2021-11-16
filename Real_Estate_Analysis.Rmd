@@ -1,5 +1,5 @@
 ---
-title: "RealEstateAnalysis"
+title: "Taiwan Real Estate Analysis"
 author: "Tanya Nayyar"
 output: github_document
 ---
@@ -10,7 +10,22 @@ if(!require(moderndive)) install.packages("moderndive",repos="https://cran.us.r-
 if(!require(tidyr)) install.packages("tidyr",repos="https://cran.us.r-project.org")
 if(!require(broom)) install.packages("broom",repos="https://cran.us.r-project.org")
 ```
+## This document contains analysis done using the real estate data to predict real estate prices
 
+## Data Set Information:
+The market historical data set of real estate valuation is collected from Sindian Dist., New Taipei City, Taiwan. This dataset is a classical example of a regression problem. 
+
+## Attribute Information:
+ transaction_date = the transaction date (for example, 2013.250=2013 March, 2013.500=2013 June, etc.) ,
+ house_age_years = the house age (unit: year) ,
+ dist_to_mrt_m = the distance to the nearest MRT station (unit: meter) ,
+ n_convenience = the number of convenience stores in the living circle on foot (integer) ,
+ latitude = the geographic coordinate, latitude. (unit: degree) ,
+ longitude = the geographic coordinate, longitude. (unit: degree) ,
+ price_twd_msq = unit area house price (integer) 
+
+
+## Loading the required libraries 
 ```{r}
 library(dplyr)
 library(ggplot2)
@@ -19,6 +34,7 @@ library(tidyr)
 library(broom)
 ```
 
+## Setting the working directory and load into a data frame
 ```{r}
 #set the working directory
 setwd("C:/Users/TEMP/Documents")
@@ -28,6 +44,7 @@ taiwan_re_data <- read.csv(file="RealEstateData.csv")
 ```
 
 
+## View the top rows and pre-process the data
 ```{r}
 # view the top rows of the dataframe
 head(taiwan_re_data)
@@ -39,8 +56,20 @@ taiwan_real_estate <- taiwan_re_data
 taiwan_real_estate$house_age_years_grp <- case_when(taiwan_re_data$house_age_years>=0 & taiwan_re_data$house_age_years < 15 ~"0 to 15"
                                  ,taiwan_re_data$house_age_years>=15 & taiwan_re_data$house_age_years < 30 ~"15 to 30"
                                  ,taiwan_re_data$house_age_years>=30 & taiwan_re_data$house_age_years <45 ~"30 to 45")
+
+head(taiwan_real_estate)
+```
+## Retrieve column names
+```{r}
+colnames(taiwan_real_estate)
 ```
 
+## Dataset Summary
+```{r}
+summary(taiwan_real_estate)
+```
+
+## Rename some of the columns
 ```{r}
 #renaming the columns
 taiwan_real_estate <- taiwan_real_estate %>% 
@@ -50,42 +79,35 @@ taiwan_real_estate <- taiwan_real_estate %>%
   )
 ```
 
+## Fit a linear regression of price_twd_msq vs. n_convenience
 ```{r}
-taiwan_real_estate
-```
-
-```{r}
-# Fit a linear regr'n of price_twd_msq vs. n_convenience
 mdl_price_vs_conv <- lm(price_twd_msq~n_convenience,data=taiwan_real_estate)
 ```
-
+## See the result
 ```{r}
-# See the result
 mdl_price_vs_conv
 ```
 
+## Fit a linear regressionn of price_twd_msq vs. house_age_years (no intercept)
 ```{r}
-# Fit a linear regr'n of price_twd_msq vs. house_age_years, no intercept
 mdl_price_vs_age <- lm(price_twd_msq~house_age_years+0,data=taiwan_real_estate)
 ```
 
-
+## See the result
 ```{r}
-# See the result
 mdl_price_vs_age
 ```
 
-
+## Fit a linear regr'n of price_twd_msq vs. n_convenience plus house_age_years, no intercept
 ```{r}
-# Fit a linear regr'n of price_twd_msq vs. n_convenience 
-# plus house_age_years, no intercept
 mdl_price_vs_both <- lm(price_twd_msq~house_age_years+n_convenience+0,data=taiwan_real_estate)
 ```
 
+## Results
 ```{r}
-# See the result
 mdl_price_vs_both
 ```
+
 ## Results
 
 From the results we can see that n_convenence coefficient specifies that for each additional 
@@ -93,6 +115,8 @@ nearby convenience store, the expected house price, in TWD per square meter, inc
 Also, the "house_age_years0 to 15" coefficient specifies that for a house aged 0 to 15 years with 
 zero nearby convenience stores, the expected house price is 31.111 TWD per square meter.
 
+## Scatter plot between price_twd_msq vs. n_convenience and
+## adding a smooth trend line using Linear Regression
 ```{r}
 # Using taiwan_real_estate, plot price_twd_msq vs. n_convenience
 ggplot(taiwan_real_estate,aes(y=price_twd_msq,x=n_convenience)) +
@@ -103,7 +127,7 @@ ggplot(taiwan_real_estate,aes(y=price_twd_msq,x=n_convenience)) +
 
 ```
 
-
+## Plot Boxplot using plot price_twd_msq and house_age_years
 ```{r}
 # Using taiwan_real_estate, plot price_twd_msq vs. house_age_years
 ggplot(taiwan_real_estate,aes(y=price_twd_msq,x=house_age_years)) +
@@ -111,10 +135,9 @@ ggplot(taiwan_real_estate,aes(y=price_twd_msq,x=house_age_years)) +
   geom_boxplot()
 ```
 
+## Plot geom_parallel_slopes to plot to show predictions with numeric variables and explanatory variables
+## Using taiwan_real_estate, plot price_twd_msq vs.n_convenience colored by house_age_years
 ```{r}
-#using geom_parallel_slopes to plot to show predictions with numeric and explanatory variables
-# Using taiwan_real_estate, plot price_twd_msq vs. n_convenience
-# colored by house_age_years
 ggplot(taiwan_real_estate,aes(color=house_age_years,y=price_twd_msq,x=n_convenience)) +
   # Add a point layer
   geom_point() +
@@ -122,6 +145,7 @@ ggplot(taiwan_real_estate,aes(color=house_age_years,y=price_twd_msq,x=n_convenie
   geom_parallel_slopes(se=FALSE)
 ```
 
+## Explanatory Data Grid
 ```{r}
 # Make a grid of explanatory data
 explanatory_data <- expand_grid(
@@ -132,6 +156,7 @@ explanatory_data <- expand_grid(
 )
 ```
 
+## Resut
 ```{r}
 # See the result
 explanatory_data
@@ -144,12 +169,14 @@ explanatory_data <- expand_grid(
 )
 ```
 
+## Add Predictions
 ```{r}
 # Add predictions to the data frame
 prediction_data <- explanatory_data %>% 
   mutate(price_twd_msq = predict(mdl_price_vs_both,explanatory_data))
 ```
 
+## Result
 ```{r}
 # See the result
 prediction_data
@@ -167,6 +194,7 @@ prediction_data <- explanatory_data %>%
   )
 ```
 
+## Plot using Prediction Data
 ```{r}
 taiwan_real_estate %>% 
   ggplot(aes(n_convenience, price_twd_msq, color = house_age_years)) +
@@ -178,6 +206,8 @@ taiwan_real_estate %>%
   )
 ```
 
+
+## Retrieve Coefficients, slopes, and intercepts
 ```{r}
 # Get the coefficients from mdl_price_vs_both
 coeffs <- coefficients(mdl_price_vs_both)
@@ -204,6 +234,7 @@ intercept_15_30 <- coeffs[3]
 intercept_30_45 <- coeffs[4]
 ```
 
+## Predict
 ```{r}
 prediction_data <- explanatory_data %>% 
   mutate(
@@ -221,10 +252,12 @@ prediction_data <- explanatory_data %>%
   )
 ```
 
+## Results
 ```{r}
-# See the results
 prediction_data
 ```
+
+## Compare the coefficients of determination for all the models
 ```{r}
 ##Comparing the coefficients of determination for all the models
 mdl_price_vs_conv %>% 
@@ -294,6 +327,7 @@ taiwan_30_to_45 <- taiwan_real_estate %>%
   filter(house_age_years == "30 to 45")
 ```
 
+## Create Models
 ```{r}
 # Model price vs. no. convenience stores using 0 to 15 data
 mdl_0_to_15 <- lm(price_twd_msq~n_convenience,data=taiwan_0_to_15)
@@ -309,6 +343,7 @@ mdl_15_to_30 <- lm(price_twd_msq~n_convenience,data=taiwan_15_to_30)
 mdl_30_to_45 <- lm(price_twd_msq~n_convenience,data=taiwan_30_to_45)
 ```
 
+## Results
 ```{r}
 # See the results
 mdl_0_to_15
@@ -330,6 +365,7 @@ explanatory_data <- tibble(
 )
 ```
 
+## Add Prediction Columns
 ```{r}
 # Add column of predictions using "0 to 15" model and explanatory data 
 prediction_data_0_to_15 <- explanatory_data %>% 
@@ -360,6 +396,7 @@ taiwan_real_estate$house_age_years <- factor(taiwan_real_estate$house_age_years)
 levels(taiwan_real_estate$house_age_years)
 ```
 
+## Extend Plots to include prediction points
 ```{r}
 # Extend the plot to include prediction points
 
@@ -374,6 +411,7 @@ ggplot(taiwan_real_estate, aes(x=n_convenience, y=price_twd_msq),inherit.aes = F
   geom_point(data = prediction_data_30_to_45,aes(x=n_convenience, y=price_twd_msq, color = "blue"), size = 3, shape = 15)+theme(legend.position="none")
 ```
 
+## Assess Model Performance
 ```{r}
 #Assesing model performance
 mdl_0_to_15%>%glance()%>%pull(r.squared)
