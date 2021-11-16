@@ -1,3 +1,8 @@
+if(!require(dplyr)) install.packages("dplyr",repos="https://cran.us.r-project.org")
+if(!require(ggplot2)) install.packages("ggplot2",repos="https://cran.us.r-project.org")
+if(!require(moderndive)) install.packages("moderndive",repos="https://cran.us.r-project.org")
+if(!require(tidyr)) install.packages("tidyr",repos="https://cran.us.r-project.org")
+if(!require(broom)) install.packages("broom",repos="https://cran.us.r-project.org")
 library(dplyr)
 library(ggplot2)
 library(moderndive)
